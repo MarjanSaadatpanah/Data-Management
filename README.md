@@ -12,16 +12,18 @@ Key Features:
     -Rows matching ANY of the search terms will be displayed
 
 Additional Recommendations:
--Add input validation
--Implement pagination for large datasets
--Add more advanced filtering options
--Implement loading states
+
+    -Add input validation
+    -Implement pagination for large datasets
+    -Add more advanced filtering options
+    -Implement loading states
 
 Prerequisites
--Python 3.8+
--Node.js 14+
--pip
--npm
+
+    -Python 3.8+
+    -Node.js 14+
+    -pip
+    -npm
 
 project-root/
 │
@@ -42,8 +44,10 @@ project-root/
 │
 └── README.md
 
-cd backend
-python -m venv venv
-source venv\Scripts\activate
-pip flask flask-cors pandas
-python app.py
+In terminal:
+
+    -cd backend
+    -python -m venv venv
+    -source venv\Scripts\activate
+    -pip flask flask-cors pandas
+    -python app.py
