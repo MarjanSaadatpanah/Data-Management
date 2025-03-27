@@ -46,6 +46,7 @@ project-root/
 
 In terminal:
 
+    -git clone git@github.com:Ben-Najafloo/Magellan.git
     -cd backend
     -python -m venv venv
     -source venv\Scripts\activate
