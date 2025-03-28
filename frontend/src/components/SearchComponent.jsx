@@ -85,7 +85,7 @@ const SearchComponent = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Project Search</h1>
+            <h1 className="text-2xl font-bold mb-4">Magellan Search Project</h1>
 
             <div className="flex mb-4">
                 <input
@@ -182,8 +182,8 @@ const SearchComponent = () => {
                                     key={number}
                                     onClick={() => setCurrentPage(number)}
                                     className={`px-3 py-1 border rounded ${currentPage === number
-                                            ? 'bg-blue-500 text-white'
-                                            : 'bg-white text-blue-500'
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-white text-blue-500'
                                         }`}
                                 >
                                     {number}

@@ -7,16 +7,13 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Load the CSV file
-CSV_PATH = 'main.csv'
+CSV_PATH = 'mainFinal2.csv'
 df = pd.read_csv(CSV_PATH)
 df_filled = df.fillna('_')
 
 
 @app.route('/search', methods=['POST'])
 def search_dataframe():
-    """
-    Endpoint for searching the DataFrame based on search terms
-    """
     search_terms = request.json.get('search_terms', [])
 
     # Search logic
@@ -27,33 +24,35 @@ def search_dataframe():
         mask = mask | term_mask
 
     results_df = df_filled[mask]
+    unique_topics = results_df['Project Topic'].unique()
+    response_data = []
 
-    # Count projects contributed by each organisation
-    if 'Organization' in results_df.columns and 'Project Topic' in results_df.columns:
-        organization_counts = results_df.groupby(
-            'Organization')['Project Topic'].count().to_dict()
-        results_df['Number of Searched Contributed Projects'] = results_df['Organization'].map(
-            organization_counts)
+    for topic in unique_topics:
+        project_entries = results_df[results_df['Project Topic'] == topic]
 
-    # Define column order
-    column_order = [
-        'NO', 'Acronym', 'Project Topic', 'Project ID', 'Start Date', 'End Date',
-        'Total Cost', 'Programme', 'Topic', 'Call for Proposal', 'Source',
-        'Organization Role', 'Organization', 'Number of Searched Contributed Projects',
-        'Country', 'Project or Organ Linkedin', 'Net EU Contribution',
-        'Contact', 'Role', 'Email', 'Phone', 'Linkedin'
-    ]
+        # EXACT MATCH for "Coordinator" (capital C)
+        coordinator = project_entries[project_entries['Organization Role']
+                                      == 'Coordinator']
 
-    # Insert row numbers
-    results_df.insert(0, 'NO', range(1, len(results_df) + 1))
+        if len(coordinator) > 0:
+            coordinator_data = coordinator.iloc[0].to_dict()
+        else:
+            coordinator_data = project_entries.iloc[0].to_dict()
 
-    # Ensure only specified columns are displayed
-    columns_to_display = [
-        col for col in column_order if col in results_df.columns]
+        # Get participants (EXACT MATCH for non-Coordinators)
+        participants = project_entries[project_entries['Organization Role']
+                                       != 'Coordinator']
+        participants_data = participants.to_dict('records')
+
+        response_data.append({
+            'coordinator': coordinator_data,
+            'participants': participants_data,
+            'project_topic': topic
+        })
 
     return jsonify({
-        'data': results_df[columns_to_display].to_dict(orient='records'),
-        'columns': columns_to_display
+        'data': response_data,
+        'columns': list(results_df.columns)
     })
 
 
