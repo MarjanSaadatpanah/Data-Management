@@ -1,11 +1,30 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-
+import { motion } from 'framer-motion';
+import { BsCaretDownFill } from "react-icons/bs";
+import countries from './Countries';
+import { IoPersonCircleOutline } from "react-icons/io5";
+import { HiOutlineMail } from "react-icons/hi";
+import { MdOutlineLocalPhone } from "react-icons/md";
+import { CiLinkedin } from "react-icons/ci";
 
 const Test = () => {
     const [searchTerms, setSearchTerms] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [selectedProject, setSelectedProject] = useState(null);
+
+    // show the details    
+    const [coordinatorExpanded, setcoordinatorExpanded] = useState(false);
+    const cordinatorView = () => {
+        setcoordinatorExpanded(!coordinatorExpanded);
+    };
+    const [expandedParticipants, setExpandedParticipants] = useState({});
+    const toggleParticipant = (index) => {
+        setExpandedParticipants(prev => ({
+            ...prev,
+            [index]: !prev[index] // Toggle the state for this specific participant
+        }));
+    };
 
 
     const handleSearch = async (e) => {
@@ -53,17 +72,30 @@ const Test = () => {
                     topic: coordinator['Topic'] || 'No Additional Topic'
                 },
                 coordinator: {
+                    flag: countries(coordinator['Country']),
                     organization: coordinator['Organization'] || 'Unknown',
                     country: coordinator['Country'] || 'Unknown',
                     role: coordinator['Organization Role'] || 'Coordinator',
-                    netContribution: coordinator['Net EU Contribution'] || 'Not Available'
+                    netContribution: coordinator['Net EU Contribution'] || 'Not Available',
+                    coordinatorContact: coordinator['Contact'] || 'Not Available',
+                    coordinatorRole: coordinator['Role'] || 'Not Available',
+                    coordinatorEmail: coordinator['Email'] || 'Not Available',
+                    coordinatorPhone: coordinator['Phone'] || 'Not Available',
+                    coordinatorLinkedin: coordinator['Linkedin'] || 'Not Available'
+
                 },
                 participants: project.participants.map(participant => ({
+                    flag: countries(participant['Country']),
                     organization: participant['Organization'] || 'Unknown',
                     totalNumber: participant['TotalNumberOfContributionInProject'] || 'Unknown',
                     country: participant['Country'] || 'Unknown',
                     role: participant['Organization Role'] || 'Participant',
-                    netContribution: participant['Net EU Contribution'] || 'Not Available'
+                    netContribution: participant['Net EU Contribution'] || 'Not Available',
+                    participantContact: participant['Contact'] || 'Not Available',
+                    participantRole: participant['Role'] || 'Not Available',
+                    participantEmail: participant['Email'] || 'Not Available',
+                    participantPhone: participant['Phone'] || 'Not Available',
+                    participantLinkedin: participant['Linkedin'] || 'Not Available'
                 })),
                 CallForProposal: coordinator['Call for Proposal'] || 'Unknown'
             };
@@ -76,6 +108,11 @@ const Test = () => {
             id: project['Project ID'] || 'N/A',
             organization: project['Organization'] || 'Unknown',
             TotalNumberOfContributionInProject: project['TotalNumberOfContributionInProject'] || 'Unknown',
+            coordinatorContact: project['Contact'] || 'Not Available',
+            coordinatorRole: project['Role'] || 'Not Available',
+            coordinatorEmail: project['Email'] || 'Not Available',
+            coordinatorPhone: project['Phone'] || 'Not Available',
+            coordinatorLinkedin: project['Linkedin'] || 'Not Available',
 
             country: project['Country'] || 'Unknown',
             CallForProposal: project['Call for Proposal'] || 'Unknown',
@@ -102,9 +139,13 @@ const Test = () => {
                 role: project['Organization Role'] || 'Unknown',
                 netContribution: project['Net EU Contribution'] || 'Not Available'
             },
-            participants: [] // Empty array for old format
+            participants: [] // Empty array for old format   
         };
+
+
     };
+
+
     const handleProjectSelect = (project) => {
         const extractedProject = extractProjectDetails(project);
         setSelectedProject(extractedProject);
@@ -112,9 +153,6 @@ const Test = () => {
 
     return (
         <div className="container mx-auto p-4">
-
-
-
             <form onSubmit={handleSearch} className="flex mb-4">
                 <input
                     type="text"
@@ -131,11 +169,10 @@ const Test = () => {
                 </button>
             </form>
 
-
             <div className="flex">
                 {/* Search Results List */}
                 <div className='w-1/3'>
-                    <h2 className="mb-2 text-lg">Search Results</h2>
+                    {/* <h2 className="mb-2 text-lg">Search Results</h2> */}
                     {searchResults.map((result, index) => (
                         <div
                             key={index}
@@ -154,7 +191,7 @@ const Test = () => {
 
                 {/* Detailed Project View */}
                 <div className='w-2/3 pl-7'>
-                    <h2 className="mb-2 text-lg pl-4">Project Details</h2>
+                    {/* <h2 className="mb-2 text-lg pl-4">Project Details</h2> */}
                     {selectedProject ? (
                         <div className=" px-4 rounded space-y-3">
 
@@ -269,21 +306,53 @@ const Test = () => {
                                 <label className="inline-flex items-center justify-between text-gray-900 w-full py-3 border-2 border-gray-200 cursor-pointer hover:bg-slate-300">
                                     <div className="block w-full">
                                         <div className='flex w-full'>
-                                            <div class="w-3/6 ml-4">
-                                                <div class="text-base mb-3 font-semibold">
+                                            <div class="w-3/5 ml-4 pr-3">
+                                                <div class="text-base font-semibold">
                                                     <span>{selectedProject.coordinator.organization} </span>
                                                 </div>
+                                                <div class="mt-1 flex">
+                                                    <img
+                                                        src={`https://flagcdn.com/${selectedProject.coordinator.flag}.svg`}
+                                                        width="20"
+                                                        height="14"
+                                                        alt={selectedProject.coordinator.country}
+                                                        className="mr-2" // Optional styling
+                                                    />
+                                                    <p class="text-xs">{selectedProject.coordinator.country}</p>
+                                                </div>
                                             </div>
-                                            <div class="w-1/6 ml-2">
-                                                <p>Country: <br /> {selectedProject.coordinator.country}</p>
-                                            </div>
-                                            <div class="w-1/6">
+                                            <div class="w-1/5">
                                                 <p>Net EU Contribution: <br /> {selectedProject.coordinator.netContribution}</p>
                                             </div>
-                                            <div class="w-1/6 ml-2">
+                                            <div class="w-1/5 ml-2">
                                                 <p>Total Contributions: <br /> {selectedProject.TotalNumberOfContributionInProject}</p>
                                             </div>
+                                            <div class=" ml-2">
+                                                <button onClick={cordinatorView} class=" hover:font-bold px-5 inline-flex items-center">
+                                                    <motion.span animate={{ rotate: coordinatorExpanded ? 180 : 0 }}>
+                                                        <BsCaretDownFill className="ml-3" />
+                                                    </motion.span>
+                                                </button>
+                                            </div>
                                         </div>
+
+                                        {/* show details of coordinator */}
+                                        {coordinatorExpanded && (
+                                            <motion.div>
+                                                <div class="ml-5 mt-5">
+                                                    <div className='flex'>
+                                                        <IoPersonCircleOutline className='mt-1 mr-2' />
+                                                        <p>
+                                                            <span className='font-bold'> {selectedProject.coordinator.coordinatorContact}</span> / {selectedProject.coordinator.coordinatorRole}
+                                                        </p>
+                                                    </div>
+                                                    <div className='flex'><HiOutlineMail className='mt-1 mr-2' /><p>{selectedProject.coordinator.coordinatorEmail}</p></div>
+                                                    <div className='flex'><MdOutlineLocalPhone className='mt-1 mr-2' /><p>{selectedProject.coordinator.coordinatorPhone}</p></div>
+                                                    <div className='flex'><CiLinkedin className='mt-1 mr-2' /><p>{selectedProject.coordinator.coordinatorLinkedin}</p></div>
+
+                                                </div>
+                                            </motion.div>
+                                        )}
                                     </div>
                                 </label>
                             </div>
@@ -295,38 +364,61 @@ const Test = () => {
                                     {selectedProject.participants.length > 0 ? (
                                         selectedProject.participants.map((participant, index) => (
                                             <li key={index}>
-                                                <label className="inline-flex items-center justify-between text-gray-900 w-full py-1 border-b-2 border-gray-500 cursor-pointer hover:bg-slate-300">
+                                                <label className="inline-flex items-center justify-between text-gray-900 w-full py-3 border-2 border-gray-200 cursor-pointer hover:bg-slate-300">
                                                     <div className="block w-full">
                                                         <div className='flex w-full'>
-                                                            <div class="w-3/6 ml-4">
-                                                                <div class="text-base mb-3 font-semibold">
-
-                                                                    <span className='text-green-500 font-bold text-sm mr-2'>
-                                                                        {participant.role !== "Participant" && (
-                                                                            participant.role
-                                                                        )}
-                                                                    </span>
-                                                                    <span >
-                                                                        {participant.organization}
-                                                                    </span>
+                                                            <div class="w-3/5 ml-4 pr-3">
+                                                                <div class="text-base font-semibold">
+                                                                    <span>{participant.organization} </span>
+                                                                </div>
+                                                                <div class="mt-1 flex">
+                                                                    <img
+                                                                        src={`https://flagcdn.com/${participant.flag}.svg`}
+                                                                        width="20"
+                                                                        height="14"
+                                                                        alt={participant.country}
+                                                                        className="mr-2"
+                                                                    />
+                                                                    <p class="text-xs">{participant.country}</p>
                                                                 </div>
                                                             </div>
-                                                            <div class="w-1/6 ml-2">
-                                                                <p>Country: <br /> {participant.country}</p>
-                                                            </div>
-                                                            <div class="w-1/6">
+                                                            <div class="w-1/5">
                                                                 <p>Net EU Contribution: <br /> {participant.netContribution}</p>
                                                             </div>
-                                                            <div class="w-1/6 ml-2">
-                                                                <p>Total Contributions: <br /> {participant.totalNumber}</p>
+                                                            <div class="w-1/5 ml-2">
+                                                                <p>Total Contributions: <br /> {participant.TotalNumberOfContributionInProject}</p>
+                                                            </div>
+                                                            <div class=" ml-2">
+                                                                <button onClick={() => toggleParticipant(index)} class=" hover:font-bold px-5 inline-flex items-center">
+                                                                    <motion.span animate={{ rotate: expandedParticipants[index] ? 180 : 0 }}>
+                                                                        <BsCaretDownFill className="ml-3" />
+                                                                    </motion.span>
+                                                                </button>
                                                             </div>
                                                         </div>
+
+                                                        {/* show details of coordinator */}
+                                                        {expandedParticipants[index] && (
+                                                            <motion.div>
+                                                                <div class="ml-5 mt-5">
+                                                                    <div className='flex'>
+                                                                        <IoPersonCircleOutline className='mt-1 mr-2' />
+                                                                        <p>
+                                                                            <span className='font-bold'> {participant.participantContact}</span> / {participant.participantRole}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className='flex'><HiOutlineMail className='mt-1 mr-2' /><p>{participant.participantEmail}</p></div>
+                                                                    <div className='flex'><MdOutlineLocalPhone className='mt-1 mr-2' /><p>{participant.participantPhone}</p></div>
+                                                                    <div className='flex'><CiLinkedin className='mt-1 mr-2' /><p>{participant.participantLinkedin}</p></div>
+
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
                                                     </div>
                                                 </label>
 
 
-
-
+                                                {/* .................................... */}
                                             </li>
                                         ))
                                     ) : (
@@ -345,3 +437,13 @@ const Test = () => {
 };
 
 export default Test;
+
+
+
+
+
+
+
+
+
+

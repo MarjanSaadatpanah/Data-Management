@@ -1,36 +1,158 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import debounce from 'lodash/debounce'; // Import debounce
+import { motion } from 'framer-motion';
+import { BsCaretDownFill } from "react-icons/bs";
+import countries from './Countries';
+import { IoPersonCircleOutline } from "react-icons/io5";
+import { HiOutlineMail } from "react-icons/hi";
+import { MdOutlineLocalPhone } from "react-icons/md";
+import { CiLinkedin } from "react-icons/ci";
+
+import partnerPNG from "../img/partner-removebg-preview.png";
+import thirdpartyPNG from "../img/Third-removebg-preview.png"
 
 const Search = () => {
     const [searchTerms, setSearchTerms] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [selectedProject, setSelectedProject] = useState(null);
+    const [message, setMessage] = useState(false);
+    const searchInputRef = useRef(null);
 
-    const handleSearch = async () => {
+
+    // show the details    
+    const [coordinatorExpanded, setcoordinatorExpanded] = useState(false);
+    const cordinatorView = () => {
+        setcoordinatorExpanded(!coordinatorExpanded);
+    };
+    const [expandedParticipants, setExpandedParticipants] = useState({});
+    const toggleParticipant = (index) => {
+        setExpandedParticipants(prev => ({
+            ...prev,
+            [index]: !prev[index] // Toggle the state for this specific participant
+        }));
+    };
+
+
+    // useEffect(() => {
+    //     if (searchInputRef.current) {
+    //         searchInputRef.current.focus(); // Focus the input
+    //     }
+    // }, []);
+
+    // useEffect(() => {
+    //     if (searchInputRef.current) {
+    //         searchInputRef.current.focus();
+    //     }
+    // }, []);
+    useEffect(() => {
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, []);
+
+
+    const handleSearch = async (terms) => {
         try {
-            const terms = searchTerms.split(/\s+/).filter(term => term.trim() !== '');
+            const trimmedTerms = terms.split(/\s+/).filter(term => term.trim() !== '');
 
             const response = await axios.post('http://localhost:5000/search', {
-                search_terms: terms
+                search_terms: trimmedTerms,
             });
 
             setSearchResults(response.data.data);
+            setMessage(true);
+            setTimeout(() => setMessage(false), 2000);
         } catch (err) {
             console.error(err);
         }
     };
 
-    // Custom extraction function for specific data presentation
+    const debouncedSearch = debounce(handleSearch, 300); // Debounce
+
+    const handleInputChange = (e) => {
+        const newTerms = e.target.value;
+        setSearchTerms(newTerms);
+        debouncedSearch(newTerms); // Use debounced search
+    };
+
+
+
+
+
+    // Updated extraction function to handle the new data structure
     const extractProjectDetails = (project) => {
+        // Check if this is the new format (with coordinator and participants)
+        if (project.coordinator && project.participants) {
+            const coordinator = project.coordinator;
+            return {
+                title: coordinator['Project Topic'] || 'Untitled Project',
+                acronym: coordinator['Acronym'] || 'No Acronym',
+                id: coordinator['Project ID'] || 'N/A',
+                dates: {
+                    start: coordinator['Start Date'] || 'Not Specified',
+                    end: coordinator['End Date'] || 'Not Specified'
+                },
+                TotalNumberOfContributionInProject: coordinator['TotalNumberOfContributionInProject'] || 'Unknown',
 
+                financials: {
+                    totalCost: coordinator['Total Cost'] || 'Not Available',
+                    netContribution: coordinator['Net EU Contribution'] || 'Not Available'
+                },
+                contact: {
+                    name: coordinator['Contact'] || 'No Contact',
+                    email: coordinator['Email'] || 'No Email',
+                    phone: coordinator['Phone'] || 'No Phone'
+                },
+                additionalInfo: {
+                    programme: coordinator['Programme'] || 'Unspecified',
+                    topic: coordinator['Topic'] || 'No Additional Topic'
+                },
+                coordinator: {
+                    flag: countries(coordinator['Country']),
+                    organization: coordinator['Organization'] || 'Unknown',
+                    country: coordinator['Country'] || 'Unknown',
+                    role: coordinator['Organization Role'] || 'Coordinator',
+                    netContribution: coordinator['Net EU Contribution'] || 'Not Available',
+                    coordinatorContact: coordinator['Contact'] || 'Not Available',
+                    coordinatorRole: coordinator['Role'] || 'Not Available',
+                    coordinatorEmail: coordinator['Email'] || 'Not Available',
+                    coordinatorPhone: coordinator['Phone'] || 'Not Available',
+                    coordinatorLinkedin: coordinator['Linkedin'] || 'Not Available'
 
+                },
+                participants: project.participants.map(participant => ({
+                    flag: countries(participant['Country']),
+                    organization: participant['Organization'] || 'Unknown',
+                    totalNumber: participant['TotalNumberOfContributionInProject'] || 'Unknown',
+                    country: participant['Country'] || 'Unknown',
+                    role: participant['Organization Role'] || 'Participant',
+                    netContribution: participant['Net EU Contribution'] || 'Not Available',
+                    participantContact: participant['Contact'] || 'Not Available',
+                    participantRole: participant['Role'] || 'Not Available',
+                    participantEmail: participant['Email'] || 'Not Available',
+                    participantPhone: participant['Phone'] || 'Not Available',
+                    participantLinkedin: participant['Linkedin'] || 'Not Available'
+                })),
+                CallForProposal: coordinator['Call for Proposal'] || 'Unknown'
+            };
+        }
+
+        // Fallback to old format if needed
         return {
             title: project['Project Topic'] || 'Untitled Project',
+            acronym: project['Acronym'] || 'Untitled',
             id: project['Project ID'] || 'N/A',
             organization: project['Organization'] || 'Unknown',
+            TotalNumberOfContributionInProject: project['TotalNumberOfContributionInProject'] || 'Unknown',
+            coordinatorContact: project['Contact'] || 'Not Available',
+            coordinatorRole: project['Role'] || 'Not Available',
+            coordinatorEmail: project['Email'] || 'Not Available',
+            coordinatorPhone: project['Phone'] || 'Not Available',
+            coordinatorLinkedin: project['Linkedin'] || 'Not Available',
+
             country: project['Country'] || 'Unknown',
             CallForProposal: project['Call for Proposal'] || 'Unknown',
-
             dates: {
                 start: project['Start Date'] || 'Not Specified',
                 end: project['End Date'] || 'Not Specified'
@@ -47,8 +169,17 @@ const Search = () => {
             additionalInfo: {
                 programme: project['Programme'] || 'Unspecified',
                 topic: project['Topic'] || 'No Additional Topic'
-            }
+            },
+            coordinator: {
+                organization: project['Organization'] || 'Unknown',
+                country: project['Country'] || 'Unknown',
+                role: project['Organization Role'] || 'Unknown',
+                netContribution: project['Net EU Contribution'] || 'Not Available'
+            },
+            participants: [] // Empty array for old format   
         };
+
+
     };
 
     const handleProjectSelect = (project) => {
@@ -58,82 +189,301 @@ const Search = () => {
 
     return (
         <div className="container mx-auto p-4">
-            {/* Search Input (Same as previous example) */}
-            <div className="flex mb-4">
+            <form onSubmit={handleSearch} className="flex mb-4">
                 <input
+                    ref={searchInputRef}
                     type="text"
                     value={searchTerms}
-                    onChange={(e) => setSearchTerms(e.target.value)}
+                    onChange={handleInputChange}
                     placeholder="Enter search terms"
-                    className="flex-grow p-2 border rounded-l"
+                    className="flex-grow p-2 border rounded-l w-1/2 mr-1"
                 />
-                <button
-                    onClick={handleSearch}
-                    className="bg-blue-500 text-white p-2 rounded-r"
-                >
-                    Search
-                </button>
-            </div>
+            </form>
 
             <div className="flex">
                 {/* Search Results List */}
-                <div className='w-1/3'>
-                    <h2 className="text-xl font-bold mb-2">Search Results</h2>
+                <div className='w-1/3 pr-7'>
+                    {/* <h2 className="mb-2 text-lg">Search Results</h2> */}
                     {searchResults.map((result, index) => (
                         <div
                             key={index}
                             onClick={() => handleProjectSelect(result)}
                             className="cursor-pointer p-2 border hover:bg-gray-100 mb-2 p-9"
                         >
-                            <h3 className="font-semibold">{result['Project Topic']}</h3>
-
+                            <h3 className="font-semibold">
+                                {result.coordinator ? result.coordinator['Project Topic'] : result['Project Topic']}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                                {result.coordinator ? result.coordinator['Organization'] : result['Organization']}
+                            </p>
                         </div>
                     ))}
                 </div>
 
-                {/* Detailed Project View with Structured Data */}
+                {/* Detailed Project View */}
+                <div className='w-2/3 pl-7'>
+                    {/* <h2 className="mb-2 text-lg pl-4">Project Details</h2> */}
+                    {selectedProject && (
+                        <div className=" px-4 rounded space-y-3">
 
-                {selectedProject && (
-                    <div className='w-2/3 pl-7'>
-                        <h2 className="text-xl font-bold mb-2 pl-4">Project Details</h2>
-                        <div className=" p-4 rounded space-y-3">
-                            <h3 className="text-lg font-bold">{selectedProject.title}</h3>
-                            <div>
-                                <p>Project ID: {selectedProject.id}</p>
-                                <p>Start Date: {selectedProject.dates.start}</p>
-                                <p>End Date: {selectedProject.dates.end}</p>
-                                <p>Total Cost: {selectedProject.financials.totalCost}</p>
+                            <label className="inline-flex items-center  justify-between text-gray-900 w-full pb-5 ">
+                                <div class="block">
+                                    <div className='flex'>
+                                        <div class="w-full ml-1">
+                                            <div>
+                                                <span class="text-xl mb-2 border-b border-b-2">{selectedProject.title} </span>
+                                                <h4 className="text-sm text-blue-700">{selectedProject.acronym}</h4>
+                                            </div>
+
+                                            <ul className="grid gap-1 grid-cols-2 mt-4">
+                                                <li>
+                                                    <label className="inline-flex items-center justify-between text-gray-900 w-full   rounded  peer-checked:border-green-400  peer-checked:text-green-400  ">
+                                                        <div className="block">
+                                                            <div className='flex'>
+                                                                <div class="w-full">
+                                                                    <div class="text-sm">
+                                                                        <p>Project ID: {selectedProject.id}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                </li>
+
+                                                <li>
+                                                    <label class="inline-flex items-center justify-between text-gray-900 w-full   rounded  peer-checked:border-green-400  peer-checked:text-green-400  ">
+                                                        <div class="block">
+                                                            <div className='flex'>
+                                                                <div class="w-full">
+                                                                    <div class="text-sm">
+                                                                        <p>Start Date: {selectedProject.dates.start}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                </li>
+                                                <li>
+                                                    <label class="inline-flex items-center justify-between text-gray-900 w-full   rounded  peer-checked:border-green-400  peer-checked:text-green-400  ">
+                                                        <div class="block">
+                                                            <div className='flex'>
+                                                                <div class="w-full">
+                                                                    <div class="text-sm">
+                                                                        <p>Total Cost: {selectedProject.financials.totalCost}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                </li>
+                                                <li>
+                                                    <label class="inline-flex items-center justify-between text-gray-900 w-full   rounded  peer-checked:border-green-400  peer-checked:text-green-400  ">
+                                                        <div class="block">
+                                                            <div className='flex'>
+                                                                <div class="w-full">
+                                                                    <div class="text-sm">
+                                                                        <p>End Date: {selectedProject.dates.end}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                </li>
+                                            </ul>
+
+                                            <div className='mt-1'>
+                                                <label className="inline-flex  items-center justify-between text-gray-900 w-full  peer-checked:border-green-400  peer-checked:text-green-400  ">
+                                                    <div className="block">
+                                                        <div className='flex'>
+                                                            <div class="w-full">
+                                                                <div class="text-base">
+                                                                    <p><span className='text-sm'>Programme: </span> {selectedProject.additionalInfo.programme}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                                <label class="inline-flex  items-center justify-between text-gray-900 w-full  peer-checked:border-green-400  peer-checked:text-green-400  ">
+                                                    <div class="block">
+                                                        <div className='flex'>
+                                                            <div class="w-full">
+                                                                <div class="text-base">
+                                                                    <p><span className='text-sm'>Topic: </span> {selectedProject.additionalInfo.topic}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                                <label class="inline-flex  items-center justify-between text-gray-900 w-full  peer-checked:border-green-400  peer-checked:text-green-400  ">
+                                                    <div class="block">
+                                                        <div className='flex'>
+                                                            <div class="w-full">
+                                                                <div class="text-base">
+                                                                    <p><span className='text-sm'>Call for Proposal: </span>  {selectedProject.CallForProposal}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+
+                            {/* Coordinated by: */}
+                            <div className="pb-2 mb-3 mt-5">
+                                <h3 className="text-lg">Coordinated by:</h3>
+                                <label className="inline-flex items-center justify-between text-gray-900 w-full py-3 border-t-2 border-t-gray-200 cursor-pointer hover:bg-slate-300">
+                                    <div className="block w-full">
+                                        <div className='flex w-full'>
+                                            <div class="w-3/5 ml-4 pr-3">
+                                                <div class="text-base font-semibold">
+                                                    <span>{selectedProject.coordinator.organization} </span>
+                                                </div>
+                                                <div class="mt-1 flex">
+                                                    <img
+                                                        src={`https://flagcdn.com/${selectedProject.coordinator.flag}.svg`}
+                                                        width="20"
+                                                        height="14"
+
+                                                        className="mr-2" // Optional styling
+                                                    />
+                                                    <p class="text-xs">{selectedProject.coordinator.country}</p>
+                                                </div>
+                                            </div>
+                                            <div class="w-1/5">
+                                                <p>Net EU Contribution: <br /> {selectedProject.coordinator.netContribution}</p>
+                                            </div>
+                                            <div class="w-1/5 ml-2">
+                                                <p>Total Contributions: <br /> {selectedProject.TotalNumberOfContributionInProject}</p>
+                                            </div>
+                                            <div class=" ml-2">
+                                                <button onClick={cordinatorView} class=" hover:font-bold px-5 inline-flex items-center">
+                                                    <motion.span animate={{ rotate: coordinatorExpanded ? 180 : 0 }}>
+                                                        <BsCaretDownFill className="ml-3" />
+                                                    </motion.span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* show details of coordinator */}
+                                        {coordinatorExpanded && (
+                                            <motion.div>
+                                                <div class="ml-5 mt-5">
+                                                    <div className='flex'>
+                                                        <IoPersonCircleOutline className='mt-1 mr-2' />
+                                                        <p>
+                                                            <span className='font-bold'> {selectedProject.coordinator.coordinatorContact}</span> / {selectedProject.coordinator.coordinatorRole}
+                                                        </p>
+                                                    </div>
+                                                    <div className='flex'><HiOutlineMail className='mt-1 mr-2' /><p>{selectedProject.coordinator.coordinatorEmail}</p></div>
+                                                    <div className='flex'><MdOutlineLocalPhone className='mt-1 mr-2' /><p>{selectedProject.coordinator.coordinatorPhone}</p></div>
+                                                    <div className='flex'><CiLinkedin className='mt-1 mr-2' /><p>{selectedProject.coordinator.coordinatorLinkedin}</p></div>
+
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                </label>
                             </div>
 
-                            <div>
-                                <p>Programme: {selectedProject.additionalInfo.programme}</p>
-                                <p>Topic: {selectedProject.additionalInfo.topic}</p>
-                                <p>Call for Proposal: {selectedProject.CallForProposal}</p>
-                            </div>
+                            {/* Participant(s): */}
+                            <div className="pb-2 mt-5">
+                                <h3 className="text-lg">Participant(s):</h3>
+                                <ul className="grid w-full gap-2 grid-cols-1">
+                                    {selectedProject.participants.length > 0 ? (
+                                        selectedProject.participants.map((participant, index) => (
+                                            <li key={index}>
+                                                <label className="inline-flex items-center justify-between text-gray-900 w-full py-3 border-t-2 border-t-gray-200 cursor-pointer hover:bg-slate-300">
+                                                    <div className="block w-full">
+                                                        <div className='flex w-full'>
+                                                            <div class="flex w-3/5 ml-4 pr-3">
+                                                                <div class="text-base font-semibold">
+                                                                    {participant.role === "partner" && (
+                                                                        // <span className='text-green-500 font-bold text-sm mr-2'>
+                                                                        //     participant.role
+                                                                        // </span>
+                                                                        <img src={partnerPNG} width="70" />
+                                                                    )}
+                                                                    {participant.role === "Third-party" && (
+                                                                        // <span className='text-green-500 font-bold text-sm mr-2'>
+                                                                        //     participant.role
+                                                                        // </span>
+                                                                        <img src={thirdpartyPNG} width="70" />
+                                                                    )}
+                                                                </div>
+                                                                <div>
+                                                                    <span>{participant.organization} </span>
+                                                                    <div class="mt-1 flex">
+                                                                        <img
+                                                                            src={`https://flagcdn.com/${participant.flag}.svg`}
+                                                                            width="20"
+                                                                            height="14"
+                                                                            className="mr-2"
+                                                                        />
+                                                                        <p class="text-xs">{participant.country}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="w-1/5">
+                                                                <p>Net EU Contribution: <br /> {participant.netContribution}</p>
+                                                            </div>
+                                                            <div class="w-1/5 ml-2">
+                                                                <p>Total Contributions: <br /> {participant.TotalNumberOfContributionInProject}</p>
+                                                            </div>
+                                                            <div class=" ml-2">
+                                                                <button onClick={() => toggleParticipant(index)} class=" hover:font-bold px-5 inline-flex items-center">
+                                                                    <motion.span animate={{ rotate: expandedParticipants[index] ? 180 : 0 }}>
+                                                                        <BsCaretDownFill className="ml-3" />
+                                                                    </motion.span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
 
-                            <div>
-                                <h4 className="font-semibold">Coordinated by:</h4>
-                                <p> {selectedProject.organization}</p>
-                                <p>Country: {selectedProject.country}</p>
-                                <p>Net EU Contribution: {selectedProject.financials.netContribution}</p>
-                            </div>
+                                                        {/* show details of coordinator */}
+                                                        {expandedParticipants[index] && (
+                                                            <motion.div>
+                                                                <div class="ml-5 mt-5">
+                                                                    <div className='flex'>
+                                                                        <IoPersonCircleOutline className='mt-1 mr-2' />
+                                                                        <p>
+                                                                            <span className='font-bold'> {participant.participantContact}</span> / {participant.participantRole}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className='flex'><HiOutlineMail className='mt-1 mr-2' /><p>{participant.participantEmail}</p></div>
+                                                                    <div className='flex'><MdOutlineLocalPhone className='mt-1 mr-2' /><p>{participant.participantPhone}</p></div>
+                                                                    <div className='flex'><CiLinkedin className='mt-1 mr-2' /><p>{participant.participantLinkedin}</p></div>
 
-                            <div>
-                                <h4 className="font-semibold">Participant(s):</h4>
-                                <p> Participant 1</p>
-                                <p>Country: </p>
-                                <p>Net EU Contribution: </p>
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </div>
+                                                </label>
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <p>No other participants found</p>
+                                    )}
+                                </ul>
                             </div>
                         </div>
-                    </div>
-                )}
-
+                    )}
+                    {message && (
+                        <p className='p-9'>Select a project to view details</p>
+                    )}
+                </div>
             </div>
-        </div>
+        </div >
     );
-};
-
+}
 export default Search;
+
+
+
+
+
+
 
 
 

@@ -12,9 +12,9 @@ function App() {
 
     <Router>
       <Routes>
-        <Route index element={<Test />} />
+        <Route index element={<Search />} />
         <Route path='/all' element={<SearchComponent />} />
-        <Route path='/test' element={<Search />} />
+        <Route path='/test' element={<Test />} />
       </Routes>
     </Router>
 
