@@ -33,18 +33,6 @@ const Search = () => {
         }));
     };
 
-
-    // useEffect(() => {
-    //     if (searchInputRef.current) {
-    //         searchInputRef.current.focus(); // Focus the input
-    //     }
-    // }, []);
-
-    // useEffect(() => {
-    //     if (searchInputRef.current) {
-    //         searchInputRef.current.focus();
-    //     }
-    // }, []);
     useEffect(() => {
         if (searchInputRef.current) {
             searchInputRef.current.focus();
@@ -187,6 +175,9 @@ const Search = () => {
         setSelectedProject(extractedProject);
     };
 
+
+    console.log(selectedProject.participants)
+
     return (
         <div className="container mx-auto p-4">
             <form onSubmit={handleSearch} className="flex mb-4">
@@ -208,7 +199,7 @@ const Search = () => {
                         <div
                             key={index}
                             onClick={() => handleProjectSelect(result)}
-                            className="cursor-pointer p-2 border hover:bg-gray-100 mb-2 p-9"
+                            className="cursor-pointer p-2 border-b border-b-gray-400 hover:bg-gray-200 pt-11 pl-4 pr-9 pb-2 ml-5"
                         >
                             <h3 className="font-semibold">
                                 {result.coordinator ? result.coordinator['Project Topic'] : result['Project Topic']}
@@ -392,9 +383,9 @@ const Search = () => {
                             <div className="pb-2 mt-5">
                                 <h3 className="text-lg">Participant(s):</h3>
                                 <ul className="grid w-full gap-2 grid-cols-1">
-                                    {selectedProject.participants.length > 0 ? (
-                                        selectedProject.participants.map((participant, index) => (
-                                            <li key={index}>
+                                    {selectedProject.participants.length > 1 ? (
+                                        selectedProject.participants.slice(1).map((participant, index) => (
+                                            <li key={index + 1}>
                                                 <label className="inline-flex items-center justify-between text-gray-900 w-full py-3 border-t-2 border-t-gray-200 cursor-pointer hover:bg-slate-300">
                                                     <div className="block w-full">
                                                         <div className='flex w-full'>
