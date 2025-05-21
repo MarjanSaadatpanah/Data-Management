@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Load the CSV file
-CSV_PATH = 'mainFinal2.csv'
+CSV_PATH = 'main_Worksheet-2.csv'
 df = pd.read_csv(CSV_PATH)
 df_filled = df.fillna('_')
 
@@ -20,7 +20,8 @@ def search_dataframe():
     mask = False
     for term in search_terms:
         term_mask = df_filled.astype(str).apply(
-            lambda x: x.str.contains(term, case=False, na=False)).any(axis=1)
+            lambda x: x.str.contains(fr'\b{term}\b', case=False, na=False, regex=True)).any(axis=1)
+
         mask = mask | term_mask
 
     results_df = df_filled[mask]

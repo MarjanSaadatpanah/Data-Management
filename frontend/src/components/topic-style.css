@@ -1,0 +1,14 @@
+.text{
+    text-overflow: ellipsis;  
+    margin-bottom: 12px;
+    cursor: pointer;          
+    word-break: break-all;
+    overflow:hidden;         
+    white-space: nowrap;
+    font-size: large;
+}
+.text:hover{
+    overflow: visible;        
+    white-space: normal;
+    height:auto;
+}
