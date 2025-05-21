@@ -58,7 +58,7 @@ const Search = () => {
             setSearchResults(response.data.data);
             setMessage(true);
             setTimeout(() => setMessage(false), 2000);
-
+            console.log(response.data.data)
         } catch (err) {
             console.error(err);
         }

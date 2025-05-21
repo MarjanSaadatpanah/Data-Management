@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import re
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -16,13 +17,18 @@ df_filled = df.fillna('_')
 def search_dataframe():
     search_terms = request.json.get('search_terms', [])
 
-    # Search logic
-    mask = False
-    for term in search_terms:
-        term_mask = df_filled.astype(str).apply(
-            lambda x: x.str.contains(fr'\b{term}\b', case=False, na=False, regex=True)).any(axis=1)
+    if not search_terms:
+        return jsonify({'data': [], 'columns': []})
 
-        mask = mask | term_mask
+    # Initialize mask to all True
+    mask = pd.Series([True] * len(df_filled))
+
+    # Apply each term to the 'Project Topic' column with AND logic
+    for term in search_terms:
+        term_mask = df_filled['Project Topic'].astype(str).str.contains(
+            fr'\b{re.escape(term)}\b', case=False, na=False, regex=True
+        )
+        mask = mask & term_mask
 
     results_df = df_filled[mask]
     unique_topics = results_df['Project Topic'].unique()
