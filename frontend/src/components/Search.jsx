@@ -90,7 +90,7 @@ const Search = () => {
                     start: coordinator['Start Date'] || 'Not Specified',
                     end: coordinator['End Date'] || 'Not Specified'
                 },
-                TotalNumberOfContributionInProject: coordinator['TotalNumberOfContributionInProject'] || 'Unknown',
+                OrganizationCorrectContribution: coordinator['Organization correct contribution'] || 'Unknown',
 
                 financials: {
                     totalCost: coordinator['Total Cost'] || 'Not Available',
@@ -121,7 +121,7 @@ const Search = () => {
                 participants: project.participants.map(participant => ({
                     flag: countries(participant['Country']),
                     organization: participant['Organization'] || 'Unknown',
-                    totalNumber: participant['TotalNumberOfContributionInProject'] || 'Unknown',
+                    OrganizationCorrectContribution_participant: participant['Organization correct contribution'] || 'Unknown',
                     country: participant['Country'] || 'Unknown',
                     role: participant['Organization Role'] || 'Participant',
                     netContribution: participant['Net EU Contribution'] || 'Not Available',
@@ -145,7 +145,7 @@ const Search = () => {
             ProjectWeb_Linkedin: project['Project web or Linkedin'] || 'Project web or Linkedin',
             id: project['Project ID'] || 'N/A',
             organization: project['Organization'] || 'Unknown',
-            TotalNumberOfContributionInProject: project['TotalNumberOfContributionInProject'] || 'Unknown',
+            OrganizationCorrectContribution: project['Organization correct contribution'] || 'Unknown',
             coordinatorContact: project['Contact'] || 'Not Available',
             coordinatorRole: project['Role'] || 'Not Available',
             coordinatorEmail: project['Email'] || 'Not Available',
@@ -422,7 +422,7 @@ const Search = () => {
                                                 <p>Net EU Contribution: <br /> {selectedProject.coordinator.netContribution}</p>
                                             </div>
                                             <div class="w-1/5 ml-2">
-                                                <p>Total Contributions: <br /> {selectedProject.TotalNumberOfContributionInProject}</p>
+                                                <p>Total Contributions: <br /> {selectedProject.OrganizationCorrectContribution}</p>
                                             </div>
                                             <div class=" ml-2">
                                                 <button onClick={cordinatorView} class=" hover:font-bold px-5 inline-flex items-center">
@@ -496,7 +496,7 @@ const Search = () => {
                                                                 <p>Net EU Contribution: <br /> {participant.netContribution}</p>
                                                             </div>
                                                             <div class="w-1/5 ml-2">
-                                                                <p>Total Contributions: <br /> {participant.TotalNumberOfContributionInProject}</p>
+                                                                <p>Total Contributions: <br /> {participant.OrganizationCorrectContribution_participant}</p>
                                                             </div>
                                                             <div class=" ml-2">
                                                                 <button onClick={() => toggleParticipant(index)} class=" hover:font-bold px-5 inline-flex items-center">
