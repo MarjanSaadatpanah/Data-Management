@@ -5,7 +5,7 @@ from flask_cors import CORS
 import re
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)  # Enable CORS for all routes jijij
 
 # Load the CSV file
 CSV_PATH = 'main_Worksheet-3.csv'

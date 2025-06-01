@@ -13,7 +13,7 @@ Key Features:
 
 Additional Recommendations:
 
-    -Add input validation
+    -Add input validations
     -Add more advanced filtering options
     -Implement loading states
 
