@@ -10,7 +10,7 @@ CORS(app)
 CSV_PATH_1 = '../data/organization.csv'
 CSV_PATH_2 = '../data/project.csv'
 
-# Load the two CSV files
+# Load the two CSV files that we want to decrease the workload
 try:
     df1 = pd.read_csv(CSV_PATH_1, dtype=str)
     df2 = pd.read_csv(CSV_PATH_2, dtype=str)
