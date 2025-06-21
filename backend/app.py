@@ -2,26 +2,50 @@ import os
 import pandas as pd
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import re
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
-# Load the CSV file
-CSV_PATH = 'mainFinal2.csv'
-df = pd.read_csv(CSV_PATH)
-df_filled = df.fillna('_')
+CSV_PATH_1 = '../data/organization.csv'
+CSV_PATH_2 = '../data/project.csv'
+
+# Load the two CSV files
+try:
+    df1 = pd.read_csv(CSV_PATH_1, dtype=str)
+    df2 = pd.read_csv(CSV_PATH_2, dtype=str)
+except FileNotFoundError:
+    print(
+        f"Warning: '{CSV_PATH_1}' or '{CSV_PATH_2}' not found. Creating dummy files for demonstration.")
+    
+df_merged = pd.merge(df1, df2, on='Project ID', how='outer')
+
+# Fill NaN values with '_' as in your original code
+df_filled = df_merged.fillna('_')
 
 
 @app.route('/search', methods=['POST'])
 def search_dataframe():
     search_terms = request.json.get('search_terms', [])
 
-    # Search logic
-    mask = False
+    if not search_terms:
+        return jsonify({'data': [], 'columns': []})
+
+    # Initialize mask to all True
+    mask = pd.Series([True] * len(df_filled))
+
+    # Apply each term to the 'Project Topic' column with AND logic
     for term in search_terms:
-        term_mask = df_filled.astype(str).apply(
-            lambda x: x.str.contains(term, case=False, na=False)).any(axis=1)
-        mask = mask | term_mask
+        # Ensure 'Project Topic' exists in the merged DataFrame
+        if 'Project Topic' in df_filled.columns:
+            term_mask = df_filled['Project Topic'].astype(str).str.contains(
+                fr'\b{re.escape(term)}\b', case=False, na=False, regex=True
+            )
+            mask = mask & term_mask
+        else:
+            print("Warning: 'Project Topic' column not found in merged DataFrame.")
+            # You might want to return an error or search in another column
+            return jsonify({'error': "'Project Topic' column not found in database"}, 400)
 
     results_df = df_filled[mask]
     unique_topics = results_df['Project Topic'].unique()

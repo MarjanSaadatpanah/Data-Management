@@ -51,3 +51,13 @@ In terminal:
     -source venv\Scripts\activate
     -pip flask flask-cors pandas
     -python app.py
+
+
+
+first:
+cd backend
+python app.py
+
+second:
+cd frontend
+npm start
